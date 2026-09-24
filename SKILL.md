@@ -66,6 +66,12 @@ Also keep heredocs that write a work file separate from commands that run it, so
 ## Workflow
 
 1. **Brief.** What the source says, the audience, the length, the formats, narration or not. Pull the key claims from the source article. Every scene must show the thing being said.
+   **Story before correctness.** The harness makes a film correct. It does not make it watchable. Before the storyboard, answer four questions in the brief:
+   - Who is the character, and what do they feel in each scene?
+   - What everyday object stands in for each idea? (The original used a letter with a wax seal, a sandbox and a town of houses.)
+   - What persistent HUD holds the scenes together? Usually a chapter dial and a typed headline.
+   - How does the last frame loop back to the first?
+   A film with none of these passes every gate and still gets scrolled past.
 2. **STORYBOARD.md before code.** One row per scene: time range | on-screen content | action | audio cue. List every event time (these become `TL` and `marks`). Plan a cut or a new motion every few seconds and no static stretch. Plan transitions as a push or overlap, never a dip to an empty frame. No fade-to-black ending unless approved.
 3. **Timeline module**, then one `sceneN(t)` function per scene (pure in t), then a compositor that draws background, the active scenes and the transitions.
 4. **Hardest frame first.** Build the densest moment, `shoot` it in every format, look at it, fix it. Then build out.
@@ -89,7 +95,7 @@ TTS first, then word-level timestamps (transcribe the WAV with any tool that ret
 - `new OfflineAudioContext(2, 48000*duration, 48000)`, build the graph, `await ctx.startRendering()`, encode to 16-bit PCM WAV, return base64 (see `wavB64` in the example).
 - Pattern from the example: a pad chord per scene (detuned sine/triangle pairs, slow attack, overlapping at cuts), a pluck (triangle + 2 harmonics, 5 ms attack, exponential decay) on every `marks` event, seeded noise-burst clicks for typing, a pitch-drop thump for an impact, and a DynamicsCompressor on the master.
 - Noise comes from the seeded RNG, never Math.random.
-- Loudness: aim for about -16 LUFS integrated and peak under -1 dBFS for social (the example came out at -17.2 LUFS, peak -1.4). Set this with master gain in the page so it stays in code.
+- Loudness: aim for about -14 LUFS integrated and peak under -1 dBFS for social feeds. The original post measured -14.3 LUFS; the bundled example is quieter at -17.2 LUFS, peak -1.4. Set this with master gain in the page so it stays in code.
 - For bit-exact audio, synthesize samples in plain JS into a Float32Array (sum of oscillators with closed-form envelopes) instead of Web Audio nodes.
 - Tone.js `Tone.Offline` (https://tonejs.github.io/docs/14.9.17/functions/Offline.html) is an option if a richer music API is needed. It must be embedded inline since the work has no network access.
 
@@ -148,9 +154,15 @@ Use these when the brief is "like the original". The world-camera section below 
 - Chips drawn centred at a column x stuck out past the board edge. Left-align lists by measuring the width first.
 - A screen-space end title duplicated the title on board 1 once the camera pulled back. Check the end state for text drawn twice.
 
+- A dark "technical plate" palette (near-black ground, hairline lines, 28 px labels) looked elegant at 1080p but read as murky on a phone. Keep the ground a deep ink with visible value (around #1b1f24). Floors: labels 34 px in 16:9 and 40 px in 9:16; statements 56 px in 16:9 and 64 px in 9:16.
+- A 2D side-profile body on 3D-rotating wings only reads from the side. Lock the camera to side view, or draw the body in 3D too.
+- The hero moment (the bird finally flying) was too small in frame. Budget its size in numbers: about 25% of frame width in 16:9 and 50% in 9:16.
+- Airflow can be exact and still a pure function of t. Use potential flow around a Joukowski airfoil (a conformal map of flow past a cylinder with circulation, plus the Kutta condition), and precompute the streamline tables once at load. The stall has no closed form, so draw it as a sketch and label it that way.
+- Phone copy of a 98 s 1080x1920 film: 2.8 Mbps gave 33 MB, and 2.2 Mbps gave 26 MB, under the 30 MB limit.
+
 ## Cost
 
-One 36-40 s film by one agent took about 0.3M tokens including three QA passes (three films in parallel: 0.93M). Budget one consolidated fix round, not many small ones.
+One 36-40 s film by one agent took about 0.3M tokens including three QA passes (three films in parallel: 0.93M). A 98 s film with source research took 0.41M, plus about 0.3M for one fix round. Budget one consolidated fix round, not many small ones.
 
 ## Files here
 
