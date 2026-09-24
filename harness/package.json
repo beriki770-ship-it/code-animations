@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Seek-based render/QA harness for code-rendered animations (window.__anim contract).",
   "dependencies": {
-    "puppeteer-core": "^23.0.0"
+    "puppeteer-core": "^25.11.0"
   },
   "license": "MIT"
 }
