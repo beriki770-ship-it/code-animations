@@ -106,7 +106,22 @@ Visual review (required, and a technical pass doesn't replace it):
 - Judge against the storyboard and the narration: is the thing being said on screen at that time? Text cut at edges, overlaps, empty or near-empty frames, dead stretches, elements outside margins, wrong font, collisions during transitions, first-frame readability (thumbnail).
 - Write a numbered defect list with timecodes and format, fix surgically, re-render, re-check the same timecodes plus a fresh full-sheet pass. Report what was and wasn't inspected. No tool certifies artistic quality.
 
-## Richer motion: the world camera (as in example/browsers-40s)
+## The bar: what the original actually does (watched frame by frame, 3 fps, 40 s)
+
+The skill's own examples are much simpler than the post that inspired it. What makes the original work, measured:
+
+- **Two visual registers, hard cuts between them.** A warm illustrated "story" world (cream paper, diagonal stripes, hatched shading, grass and pebbles on a ground line) alternates with a dark blueprint "system" world (navy grid, hairline diagrams, glowing nodes). 18 shots in 40 s, about 2.2 s each. Cuts are hard, not pushes or camera flights.
+- **A persistent HUD is the continuity.** A small chapter dial in the top-right ("1 · fetch", "2 · parse" ... "all stages") whose ring fills as the chapter progresses, and a top-left section headline typed on letter by letter with a short underline. Both survive every cut, so the jumps between worlds read as one film.
+- **A mascot with emotions.** One character (a small robot) appears in both worlds, filled in the paper world and as line-art in the blueprint world. It carries the letter, reads the certificate, sleeps, and waves. Props get faces too: the sleeping server says "zzz". Emotion carries the viewer through the technical content.
+- **Detail density.** Faint construction geometry sits behind almost every shot (protractor circles, tick marks, dimension lines, crosshairs). Each shot has 3-6 micro-events: a label types in, a packet travels, a node glows. Nothing is a single element on an empty background.
+- **Metaphors, not just diagrams.** The TLS handshake is a letter and a certificate with a wax seal. The renderer sandbox is a literal sandbox. Site isolation is a town of houses, one per site.
+- **Lowercase, small, plain labels** ("cache miss", "moves without repaint", "sandboxed · no network · no disk"). The headline is the only large text.
+- **It loops.** The last frame ("how browsers work", mascot, URL bar typing "ex|") is the first frame redrawn in the blueprint style, so autoplay replays seamlessly.
+- **Loud mix:** -14.3 LUFS integrated, -0.4 dBFS peak. Aim for about -14 LUFS with the peak under -1 dBFS.
+
+Use these when the brief is "like the original". The world-camera section below is a different, calmer style. Do not mistake it for the original.
+
+## Richer motion: the world camera (as in example/browsers-40s; a different style from the original post)
 
 - Put each scene on a board in one world (a snake grid: 16:9 = 4 cols x 2 rows, 9:16 = 2 cols x 4 rows). The camera flies between boards: across a window centred on each cut, pan with eInOut and zoom-arc `z * (1 - 0.42*sin(pi*e))`. Neighbouring boards stay live during the flight, so transitions connect the scenes instead of cutting.
 - A wire joins the board centres, with a glowing packet riding it during each flight. At the end, pull back to fit the whole world (log-interpolate zoom) and loop packets along the wire so the last frames still move.
