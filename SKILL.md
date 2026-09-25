@@ -160,6 +160,22 @@ Use these when the brief is "like the original". The world-camera section below 
 - Airflow can be exact and still a pure function of t. Use potential flow around a Joukowski airfoil (a conformal map of flow past a cylinder with circulation, plus the Kutta condition), and precompute the streamline tables once at load. The stall has no closed form, so draw it as a sketch and label it that way.
 - Phone copy of a 98 s 1080x1920 film: 2.8 Mbps gave 33 MB, and 2.2 Mbps gave 26 MB, under the 30 MB limit.
 
+## Drawing a real animal accurately (lessons from a cockatoo series)
+
+A rough "cartoon" bird got rejected as ugly. What fixed it, in order of impact:
+- **Measure from real photos first.** Put a grid over a reference photo and read the landmark ratios, e.g. bill depth / head height and eye-ring / head height. Build the rig from those numbers. Most "ugly" came from wrong proportions, not missing texture.
+- **Build one silhouette as a union of simple parts** (body ellipse, a neck hull between shoulder and head circles, skull) in one Path2D with the same winding. Stroke everything, then fill everything, so only the outer edge survives. A neck must never narrow below the head, or the bird reads as a goose.
+- **Fill with value, not lines.** Use an off-white fill, cool blue-grey shadows and a soft highlight. Flat white and dark line-art both failed on a phone.
+- **Write one feather routine and use it at every scale** (vane, edge, rachis, barbs): tail, flight feathers and crest. Draw contour feathers as staggered scallops, varied per row with a seeded rng (size 0.7-1.3x, some dropped), so they read as plumage and not a pattern.
+- **Hands, feet, bills:**
+  - Draw a skin fill, pads with texture, scutes, joint creases, and claws with a highlight.
+  - Skip fine texture below about 9 px, where it turns into stripes.
+  - A bill is ONE shaded mass: lower cup first, then the hood over it, one gape line between them.
+  - Never let face feathers intrude inside the bill: in close-up they read as teeth.
+- **The cartoon tell is usually the eye.** Match the photo ratio, which is usually smaller than you'd draw it.
+- **A text scrim over a white subject turns into a grey smear.** Put notes over light areas on a solid, text-sized pill instead.
+- **Keep a comparison sheet:** reference photo vs your frame, panel by panel, including any competing version. Judge it before any full render.
+
 ## Cost
 
 One 36-40 s film by one agent took about 0.3M tokens including three QA passes (three films in parallel: 0.93M). A 98 s film with source research took 0.41M, plus about 0.3M for one fix round. Budget one consolidated fix round, not many small ones.
