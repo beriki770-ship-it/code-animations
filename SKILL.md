@@ -127,6 +127,18 @@ The skill's own examples are much simpler than the post that inspired it. What m
 
 Use these when the brief is "like the original". The world-camera section below is a different, calmer style. Do not mistake it for the original.
 
+## Second reference: "one line, never cut" (a 52 s motion-design showreel, watched at 6 fps)
+
+A LinkedIn post (KD Deshpande, Sept 2026) showed a reel Claude Opus 5.5 made from a one-sentence prompt: "make a dynamic motion graphics video that shows what an incredible motion designer you are". Its own end card states the idea: "one line, never cut". What makes it work:
+- **One object carries the whole film.** A single orange line stays on screen for all 52 s and becomes each scene in turn. It starts as a glowing dot, stretches into a line, then becomes a timeline ruler, a text underline, a chart baseline, a perspective ray, a UI toggle, a burst of particles, and finally the underline of the signature. There are no cuts. Every transition is that line changing shape.
+- **Strict palette.** Near-black ground, cream, one orange accent. It never adds a fourth colour.
+- **Type contrast as a motif.** Light serif italic ("every frame is a *decision*", "choreography") set against a heavy grotesk ("DON'T", "DEPTH", "01"). A scrambled-glyph decode (random characters settle into the word) is used once, as a hook.
+- **The craft shown as content.** Shape morphs (circle to square to triangle, with overshoot), a bar chart growing to one orange bar, a perspective grid with DEPTH/PARALLAX, a UI panel with toggles and an EASE 0.62 slider, a halftone sphere. Each is a 3-5 s "chapter" of motion-design vocabulary.
+- **A film-slate HUD.** Running timecode and frame counter top-right, "140 BPM · 1920x1080" bottom-right, chapter names bottom-left, all small and monospaced. The viewer reads it as a professional reel.
+- **Ending.** The signature "Claude / MOTION DESIGN / REEL 2026 · 140 BPM · ONE LINE, NEVER CUT" holds for about 2.5 s with a soft glow. The mix is about -14.6 LUFS.
+
+When to use this pattern: when the piece should feel continuous and hypnotic rather than chaptered. Pick one persistent object (a line, a feather, a particle) and make every transition a transformation of it instead of a push or a cut.
+
 ## Richer motion: the world camera (as in example/browsers-40s; a different style from the original post)
 
 - Put each scene on a board in one world (a snake grid: 16:9 = 4 cols x 2 rows, 9:16 = 2 cols x 4 rows). The camera flies between boards: across a window centred on each cut, pan with eInOut and zoom-arc `z * (1 - 0.42*sin(pi*e))`. Neighbouring boards stay live during the flight, so transitions connect the scenes instead of cutting.
