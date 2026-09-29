@@ -47,6 +47,9 @@ A work follows one contract: `window.__anim = { duration, fps, width, height, ca
 
 - `SKILL.md`: the method Claude follows.
 - `harness/`: `render.mjs`, `verify.mjs`, `shoot.mjs`, `audio.mjs`, `qa.sh`. The only dependency is `puppeteer-core`.
+- `harness/lint.mjs`: a quality gate that fails a film on small or cut-off text, overlapping labels, frozen or empty frames, gaps in the shot list and sound that misses its marks.
+- `harness/review.mjs`: one contact sheet per shot plus a `REVIEW.md` of fixed questions; `--check` fails until every question is answered, every shot scores 4/5 or more and lint has 0 FAIL.
+- `AGENTS.md`: the workflow and Definition of done for any coding agent (Codex, Cursor, Copilot, Gemini CLI, Claude Code). `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md` and `.cursor/rules/` point to it.
 - `example/browser-10s/`: a small working piece with three scenes and push transitions. Start new works from this one.
 - `example/browsers-40s/`: a 40 second explainer with a world camera and a score on a beat grid.
 - `review/film-fix.html`: open any finished work in the browser. Scrolling scrubs the picture and the sound. Click the frame to write a note, then export a fix pack (`FIXES.md`, JSON and marked frames) that any coding AI can apply. Works that use `E()` elements can also be moved and scaled directly.

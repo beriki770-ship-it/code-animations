@@ -38,7 +38,8 @@ function findChrome() {
   return hit;
 }
 
-export async function openWork(htmlPath, format = '16x9') {
+// preload: optional function run in the page before any of the work's scripts (lint.mjs uses it to instrument text drawing)
+export async function openWork(htmlPath, format = '16x9', preload = null) {
   const [w, h] = FORMATS[format] || format.split('x').map(Number);
   const browser = await puppeteer.launch({
     executablePath: findChrome(),
@@ -48,6 +49,7 @@ export async function openWork(htmlPath, format = '16x9') {
   });
   const page = await browser.newPage();
   await page.setViewport({ width: w, height: h, deviceScaleFactor: 1 });
+  if (preload) await page.evaluateOnNewDocument(preload);
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });

@@ -63,6 +63,8 @@ cp "$SKILL_DIR/example/browser-10s/index.html" works/<name>/index.html   # start
 | `node harness/shoot.mjs works/<n>/index.html --format 9x16 --times 1.5,3.4` or `--range 3:4:0.1 --out out/stills` | Native canvas PNGs at exact times | Look at them |
 | `node harness/audio.mjs works/<n>/index.html --twice` | Renders only the score (seconds), checks exact length and run-to-run determinism | No `FAIL`. Chrome Web Audio can differ by 1 LSB between runs; tolerance is 1 |
 | `node harness/render.mjs works/<n>/index.html --format 16x9 --fps 30 --out out/<n>-16x9.mp4` | Seeks every frame and pipes PNGs into ffmpeg (libx264 crf18, yuv420p, +faststart), then muxes renderAudio as AAC | Prints frames and time. Exit 2 on page errors. `--from/--to` or `--silent` renders a range without audio |
+| `node harness/lint.mjs works/<n>/index.html --all-formats` | Quality gate on the page itself (16:9 + 9:16; `--format` for one): text size, safe area, text overlap, static stretch, empty frames, shot list, sound on the marks, words on screen | `lint: OK (0 FAIL)`, exit 0 |
+| `node harness/review.mjs works/<n>/index.html --format 16x9 --out out/review-16x9`, then `--check out/review-16x9/REVIEW.md` | One contact sheet per shot (first, 6 evenly spaced and last frame, timecode burned in), the lint JSON, and `REVIEW.md` with fixed questions per shot. `--check` fails on an empty or `TODO` answer, a score under 4, a lint FAIL, a removed shot section or a film changed since the sheets were made | `review check: OK`, exit 0 |
 | `bash harness/qa.sh out/<n>-16x9.mp4 4` | ffprobe, blackdetect, freezedetect, EBU R128 loudness, audio/video length, contact sheets at N samples/sec with burned-in timecode | See QA below |
 
 Formats: `16x9` 1920x1080, `9x16` 1080x1920, `4x5` 1080x1350, `1x1` 1080x1080. Frames go to ffmpeg as JPEG q95 by default, about 16 fps at 1080p, so a 40 s piece takes about 60-75 s per format. `--png` is lossless but about 4x slower.
@@ -73,6 +75,10 @@ setsid nohup bash -c 'node harness/render.mjs works/<n>/index.html --format 16x9
 tr '\r' '\n' < out/render.log | tail -2
 ```
 Also keep heredocs that write a work file separate from commands that run it, so a timeout can't lose the file.
+
+### Definition of done
+
+The exact commands are in `AGENTS.md` (the single source, shared with other coding tools): verify in every format, `audio --twice`, `lint --all-formats` with 0 FAIL, `review.mjs` then `review.mjs --check` passing, render, qa. Never claim done with a failing gate, and never weaken a gate or edit harness thresholds to pass one.
 
 ## Workflow
 
@@ -117,6 +123,17 @@ Automated gates, all on the final MP4:
 - ffprobe: expected size, 30/1 fps, nb_frames = duration x fps, audio duration = video duration.
 - blackdetect: none (unless there's an approved dramatic black beat). freezedetect (>=2 s static): none.
 - ebur128: integrated loudness and true peak within target. Consistent across episodes.
+
+### Lint (quality gate)
+
+`node harness/lint.mjs works/<n>/index.html --all-formats [--json out/lint.json]` seeks the work every 0.1 s (`--step`) and wraps `fillText`/`strokeText` from outside, so it runs on any work that follows the contract without changes. It fails on:
+- **text-size**: resting text under 2.6% of min(W,H) (28 px at 1080); under 3.3% (36 px) is a WARN. Text shrunk by a zoom-out below scale 0.5 is treated as an overview map and only warned about.
+- **safe-area**: resting text within 4% of an edge; 4-6% is a WARN.
+- **text-overlap**: two different visible strings sharing more than 15% of the smaller box for 0.2 s or longer. Shorter pass-bys are WARNs.
+- **static-stretch**: more than 3 s with no visible change (2 s is a WARN). **empty-frame**: any near-uniform frame, first and last included.
+- **shots-coverage**: gaps or overlaps in `shots`, or a shot under 1 s. **audio-sync**: under 70% of `marks` with a sound onset within ±40 ms (90% for PASS); a peak over -1 dBFS is a WARN. **density**: more than 18 words on screen in portrait or 30 in landscape (WARN only).
+
+A work is not done until lint passes with 0 FAIL in every format you deliver. It only sees text drawn with `fillText`/`strokeText` on the work's own canvas, so shape collisions and text drawn into offscreen canvases still need the visual review. `example/browser-10s` passes in all three formats; `example/browsers-40s` was made before the gate and fails it (labels at 17-28 px, a label cut off in 9:16, text collisions in scenes 6 and 7).
 
 Visual review (required, and a technical pass doesn't replace it):
 - Contact sheets from qa.sh at **at least 4 samples/sec across the full runtime** (never less and never claimed if not run). Open every sheet and look. Also `shoot` a dense range around every transition (`--range a:b:0.0333`) and at the densest frame, full-res.
@@ -205,6 +222,6 @@ One 36-40 s film by one agent took about 0.3M tokens including three QA passes (
 
 ## Files here
 
-- `harness/` - lib.mjs, render.mjs, verify.mjs, shoot.mjs, audio.mjs, qa.sh, package.json
+- `harness/` - lib.mjs, render.mjs, verify.mjs, shoot.mjs, audio.mjs, lint.mjs, review.mjs, qa.sh, package.json
 - `example/browsers-40s/` - the 40 s, 7-board "How browsers work" explainer with a world camera, beat-grid score and STORYBOARD.md (16:9 + 9:16 QA'd).
 - `example/browser-10s/` - a working 10 s (layouts tuned and QA'd for 16:9 and 9:16 only; 4:5 is known-broken in scene 3), 3-scene piece ("How a browser draws a page") with STORYBOARD.md: contract, seeded RNG, easing, per-aspect layout, push transitions, OfflineAudioContext score. Start new works from it.

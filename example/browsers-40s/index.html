@@ -132,7 +132,7 @@ function scene1(t) {
       const xa = x0 + g.measureText(URL_TEXT.slice(0, s0)).width, xb = x0 + g.measureText(URL_TEXT.slice(0, s1)).width; const yb = by + bh + 26 * S;
       withAlpha(clamp(k), () => { g.strokeStyle = col; g.lineWidth = 4 * S; g.beginPath(); g.moveTo(xa + 2 * S, yb - 10 * S); g.lineTo(xa + 2 * S, yb); g.lineTo(xb - 2 * S, yb); g.lineTo(xb - 2 * S, yb - 10 * S); g.stroke();
         const lyy = yb + (i === 2 ? 90 : 46) * S; if (i === 2) { g.beginPath(); g.moveTo((xa + xb) / 2, yb); g.lineTo((xa + xb) / 2, lyy - 24 * S); g.stroke(); }
-        g.save(); g.translate((xa + xb) / 2, lyy); g.scale(k, k); text(lab, 0, 0, 34 * S, col, 'center', '600'); g.restore();
+        g.save(); g.translate((xa + xb) / 2, lyy); g.scale(k, k); text(lab, 0, 0, 36 * S, col, 'center', '600'); g.restore();
         if (i === 1) { g.globalAlpha *= 0.14 + 0.1 * Math.sin(t * 5); g.fillStyle = col; g.fillRect(xa, by + 14 * S, xb - xa, bh - 28 * S); } });
     });
     g.restore();
@@ -154,15 +154,16 @@ function scene2(t) {
   withAlpha(0.35 * fade(t, 5.8, 0.6), () => { for (const [f, to] of [['L', 'D'], ['L', 'S']]) { const a = np2(f), b = np2(to), c = pathCtrl(a, b, f, to);
     g.strokeStyle = C.edge; g.lineWidth = 3 * S; g.setLineDash([10 * S, 10 * S]); g.beginPath(); g.moveTo(a[0], a[1] - 40 * S); g.quadraticCurveTo(c[0], c[1] - 40 * S, b[0], b[1] - 40 * S); g.stroke(); g.setLineDash([]); } });
   const sg = clamp((t - TL.serverGlow) / 0.4);
-  withAlpha(fade(t, 5.5), () => { laptop(lx, ly, s, false); text('Your browser', lx, ly + 50 * S, 32 * S, C.ink, 'center', '600'); });
-  withAlpha(fade(t, 5.7), () => { globe(dx, dy - 40 * S, s, t); text('DNS resolver', dx, dy + 50 * S, 32 * S, C.ink, 'center', '600'); });
-  withAlpha(fade(t, 5.9), () => { server(sx, sy, s, sg, t); text('example.com server', sx, sy + 50 * S, 32 * S, C.ink, 'center', '600'); });
-  const ipk = pop(t, TL.ip); if (ipk > 0) chip('IP 93.184.215.14', lx, ly + 104 * S, C.green, ipk, 26);
+  const labY = portrait ? ly - 150 * S : ly + 50 * S;  // portrait: label + IP chip above the laptop, the L->S route leaves it downwards
+  withAlpha(fade(t, 5.5), () => { laptop(lx, ly, s, false); text('Your browser', lx, labY, 36 * S, C.ink, 'center', '600'); });
+  withAlpha(fade(t, 5.7), () => { globe(dx, dy - 40 * S, s, t); text('DNS resolver', dx, dy + 50 * S, 36 * S, C.ink, 'center', '600'); });
+  withAlpha(fade(t, 5.9), () => { server(sx, sy, s, sg, t); text('example.com server', sx, sy + 50 * S, 36 * S, C.ink, 'center', '600'); });
+  const ipk = pop(t, TL.ip); if (ipk > 0) chip('IP 93.184.215.14', lx, portrait ? labY - 66 * S : ly + 114 * S, C.green, ipk, 36);
   TL.pk.forEach(([f, to, st, du, lab, col]) => { if (t < st || t > st + du + 0.25) return; const a = np2(f), b = np2(to), c = pathCtrl(a, b, f, to);
     const k = eInOut(prog(t, st, st + du)); const q = quadPt([a[0], a[1] - 40 * S], [c[0], c[1] - 40 * S], [b[0], b[1] - 40 * S], k);
     const al = 1 - prog(t, st + du, st + du + 0.25);
     withAlpha(al, () => { g.strokeStyle = col; g.lineWidth = 5 * S; g.beginPath(); for (let j = 0; j <= 20; j++) { const kk = k * j / 20, p = quadPt([a[0], a[1] - 40 * S], [c[0], c[1] - 40 * S], [b[0], b[1] - 40 * S], kk); j ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); } g.stroke();
-      chip(lab, q[0], q[1], col, 1, 28, true); }); });
+      chip(lab, q[0], q[1], col, 1, 36, true); }); });
   caption('DNS turns the name into an IP address', t, 6.6, 8.6);
   caption('TCP + TLS handshake: a secure connection', t, 8.6, 10.9);
   caption('Then the request: GET /', t, 10.9);
@@ -176,23 +177,23 @@ function codeLine(str, x, y, size) { g.font = `500 ${size}px ${MONO}`; g.textAli
     g.fillText(part, cx, y); cx += g.measureText(part).width; } }
 function scene3(t) {
   title('2. The server responds', t, 12);
-  const [hx, hy, hw, hh] = portrait ? [W * 0.07, H * 0.18, W * 0.86, H * 0.17] : [W * 0.06, H * 0.25, W * 0.36, H * 0.34];
-  const [cx, cy, cw, ch] = portrait ? [W * 0.07, H * 0.385, W * 0.86, H * 0.43] : [W * 0.45, H * 0.23, W * 0.49, H * 0.58];
+  const [hx, hy, hw, hh] = portrait ? [W * 0.06, H * 0.18, W * 0.88, H * 0.17] : [W * 0.06, H * 0.25, W * 0.36, H * 0.34];
+  const [cx, cy, cw, ch] = portrait ? [W * 0.06, H * 0.385, W * 0.88, H * 0.43] : [W * 0.44, H * 0.23, W * 0.5, H * 0.58];  // wide enough for the longest code line at 36px
   withAlpha(fade(t, 11.6, 0.5), () => { box(hx, hy, hw, hh, 20 * S, C.panel, C.green, 3 * S); box(cx, cy, cw, ch, 20 * S, C.panel, C.blue, 3 * S);
-    text('response headers', hx + 24 * S, hy + 34 * S, 26 * S, C.dim, 'left', '600'); text('body: HTML', cx + 24 * S, cy + 34 * S, 26 * S, C.dim, 'left', '600'); });
+    text('response headers', hx + 24 * S, hy + 40 * S, 36 * S, C.dim, 'left', '600'); text('body: HTML', cx + 24 * S, cy + 40 * S, 36 * S, C.dim, 'left', '600'); });
   const H3 = ['HTTP/2 200 OK', 'content-type: text/html', 'content-length: 1256'];
   H3.forEach((line, i) => { const k = prog(t, TL.hdr[i], TL.hdr[i] + 0.35); if (k <= 0) return; const n = Math.ceil(line.length * k);
-    const fs = (portrait ? 34 : 32) * S; const yy = hy + (portrait ? 78 : 86) * S + i * fs * 1.55;
+    const fs = 36 * S; const yy = hy + (portrait ? 92 : 94) * S + i * fs * 1.5;
     text(line.slice(0, n), hx + 24 * S, yy, fs, i === 0 ? C.green : C.ink, 'left', i === 0 ? '700' : '500', hw - 48 * S, MONO); });
-  const ok = pop(t, TL.hdr[0] + 0.4); if (ok > 0) chip('200', hx + hw - 70 * S, hy + 34 * S, C.green, ok, 24, true);
-  const fs = (portrait ? 30 : 29) * S, lh = fs * 1.6;
+  const ok = pop(t, TL.hdr[0] + 0.4); if (ok > 0) chip('200', hx + hw - 70 * S, hy + 40 * S, C.green, ok, 36, true);
+  const fs = 36 * S, lh = fs * 1.5;
   CODE.forEach((line, i) => { const st = TL.code0 + i * TL.codeStep; const k = eOut(prog(t, st, st + 0.3)); if (k <= 0) return;
-    withAlpha(k, () => codeLine(line, cx + 28 * S + (1 - k) * 40 * S, cy + 84 * S + i * lh, fs)); });
+    withAlpha(k, () => codeLine(line, cx + 22 * S + (1 - k) * 40 * S, cy + 92 * S + i * lh, fs)); });
   // bytes bar
   const bp = eInOut(prog(t, TL.bytes[0], TL.bytes[1]));
-  const [bx, by, bw] = portrait ? [W * 0.07, H * 0.845, W * 0.86] : [W * 0.06, H * 0.68, W * 0.36];
+  const [bx, by, bw] = portrait ? [W * 0.06, H * 0.845, W * 0.88] : [W * 0.06, H * 0.68, W * 0.36];
   withAlpha(fade(t, 13.8), () => { box(bx, by, bw, 18 * S, 9 * S, '#1c2650', null); if (bp > 0) box(bx, by, bw * bp, 18 * S, 9 * S, C.blue, null);
-    text(`${Math.round(1256 * bp)} / 1256 bytes`, bx, by + 50 * S, 30 * S, C.ink, 'left', '600', bw, MONO); });
+    text(`${Math.round(1256 * bp)} / 1256 bytes`, bx + 8 * S, by + 54 * S, 36 * S, C.ink, 'left', '600', bw, MONO); });
   if (!portrait) caption('HTML arrives as a stream of bytes', t, 16.0, 99, H * 0.865);
 }
 
@@ -204,18 +205,19 @@ const DOMPOS = portrait
 function scene4(t) {
   title('3. Parse HTML → DOM tree', t, 17);
   const [kx, ky] = P(0.15, 0.5, 0.5, 0.235); const nw = (portrait ? 170 : 150) * S, nh = 70 * S;
-  withAlpha(fade(t, 16.4, 0.5), () => { box(kx - 120 * S, ky - 60 * S, 240 * S, 120 * S, 24 * S, C.panel, C.violet, 3 * S); text('tokenizer', kx, ky, 34 * S, C.violet, 'center', '700');
+  withAlpha(fade(t, 16.4, 0.5), () => { box(kx - 120 * S, ky - 60 * S, 240 * S, 120 * S, 24 * S, C.panel, C.violet, 3 * S); text('tokenizer', kx, ky - 4 * S, 36 * S, C.violet, 'center', '700');
     const spin = t * 3; for (let j = 0; j < 3; j++) { g.fillStyle = C.violet; g.globalAlpha *= 1; g.beginPath(); g.arc(kx - 20 * S + j * 20 * S, ky + 38 * S, (4 + 2 * Math.sin(spin + j)) * S, 0, 7); g.fill(); } });
   const pos = id => [DOMPOS[id][0] * W, DOMPOS[id][1] * H];
   DOM.forEach(([id, par], i) => { if (!par) return; const at = TL.nodes0 + i * TL.nodeStep; const e = eInOut(prog(t, at - 0.05, at + 0.3)); if (e <= 0) return;
     const [x0, y0] = pos(par), [x1, y1] = pos(id); g.strokeStyle = C.dim; g.lineWidth = 3.5 * S; g.beginPath(); g.moveTo(x0, y0 + nh / 2); g.lineTo(lerp(x0, x1, e), lerp(y0 + nh / 2, y1 - nh / 2, e)); g.stroke(); });
   DOM.forEach(([id], i) => { const at = TL.nodes0 + i * TL.nodeStep; const [x, y] = pos(id);
-    const fl = prog(t, at - 0.4, at); if (fl > 0 && fl < 1) { const q = quadPt([kx, ky], [lerp(kx, x, 0.5), Math.min(ky, y) - 120 * S], [x, y], eInOut(fl)); chip(`<${id}>`, q[0], q[1], C.violet, 0.8 + 0.2 * fl, 26, true); }
+    const fl = prog(t, at - 0.4, at); if (fl > 0 && fl < 1) { const q = portrait ? quadPt([kx, ky + 60 * S], [lerp(kx, x, 0.5), ky + 60 * S], [x, y], eInOut(fl))   // portrait: leave from the box's bottom edge, not across its label
+      : quadPt([kx, ky], [lerp(kx, x, 0.5), Math.min(ky, y) - 120 * S], [x, y], eInOut(fl)); chip(`<${id}>`, q[0], q[1], C.violet, 0.8 + 0.2 * fl, 26, true); }
     const k = pop(t, at); if (k <= 0) return;
     const sw = TL.sweep + i * 0.2, glow = Math.exp(-Math.max(0, t - at) * 3) + (t > sw ? Math.exp(-(t - sw) * 4) : 0);
     g.save(); g.translate(x, y); g.scale(k, k); box(-nw / 2, -nh / 2, nw, nh, 16 * S, C.panel, i === 0 ? C.amber : C.blue, (3 + 5 * clamp(glow)) * S);
-    text(id, 0, 0, 34 * S, C.ink, 'center', '700', nw - 16 * S, MONO); g.restore(); });
-  const bk = pop(t, TL.sweep); if (bk > 0) chip('DOM tree', ...P(0.62, 0.8, 0.5, 0.8), C.amber, bk, 30, true, FONT);
+    text(id, 0, 0, 36 * S, C.ink, 'center', '700', nw - 16 * S, MONO); g.restore(); });
+  const bk = pop(t, TL.sweep); if (bk > 0) chip('DOM tree', ...P(0.62, 0.8, 0.5, 0.8), C.amber, bk, 36, true, FONT);
   caption('Document Object Model: the page as objects', t, 21.5);
 }
 
@@ -223,32 +225,33 @@ function scene4(t) {
 const RULES = [['h1', '{ color: amber }', C.amber], ['p', '{ font-size: 18px }', C.green], ['img', '{ display: none }', C.red]];
 function scene5(t) {
   title('4. CSS → CSSOM → Render tree', t, 23);
-  const [ax, ay, aw, ah] = portrait ? [W * 0.07, H * 0.18, W * 0.4, H * 0.3] : [W * 0.06, H * 0.23, W * 0.26, H * 0.56];
-  const [bx, by, bw, bh] = portrait ? [W * 0.51, H * 0.18, W * 0.42, H * 0.3] : [W * 0.35, H * 0.23, W * 0.28, H * 0.56];
+  const [ax, ay, aw, ah] = portrait ? [W * 0.07, H * 0.18, W * 0.36, H * 0.3] : [W * 0.06, H * 0.23, W * 0.26, H * 0.56];
+  const [bx, by, bw, bh] = portrait ? [W * 0.46, H * 0.18, W * 0.47, H * 0.3] : [W * 0.35, H * 0.23, W * 0.28, H * 0.56];  // portrait: CSS column wider, its rules are the longest lines
   const [rx, ry, rw, rh] = portrait ? [W * 0.07, H * 0.55, W * 0.86, H * 0.27] : [W * 0.67, H * 0.23, W * 0.27, H * 0.56];
   withAlpha(fade(t, 22.5, 0.5), () => { box(ax, ay, aw, ah, 20 * S, C.panel, C.blue, 3 * S); box(bx, by, bw, bh, 20 * S, C.panel, C.green, 3 * S);
-    text('DOM', ax + 22 * S, ay + 34 * S, 28 * S, C.blue, 'left', '700'); text('CSS rules → CSSOM', bx + 22 * S, by + 34 * S, 28 * S, C.green, 'left', '700', bw - 40 * S); });
+    text('DOM', ax + 22 * S, ay + 38 * S, 36 * S, C.blue, 'left', '700'); text('CSS rules → CSSOM', bx + 22 * S, by + 38 * S, 36 * S, C.green, 'left', '700', bw - 30 * S); });
   const rows = [['html', 0], ['head', 1], ['title', 2], ['body', 1], ['h1', 2], ['p', 2], ['img', 2]];
-  const rfs = (portrait ? 28 : 30) * S, rlh = Math.min(rfs * 1.55, (ah - 80 * S) / 7.2);
-  rows.forEach(([id, d], i) => { const y = ay + 82 * S + i * rlh, x = ax + 26 * S + d * 30 * S;
+  const rfs = 36 * S, rlh = Math.min(rfs * 1.55, (ah - 80 * S) / 7.2);
+  rows.forEach(([id, d], i) => { const y = ay + 92 * S + i * rlh, x = ax + 26 * S + d * 30 * S;
     const struck = (id === 'head' || id === 'title') ? prog(t, TL.strikes[0], TL.strikes[0] + 0.3) : id === 'img' ? prog(t, TL.strikes[1], TL.strikes[1] + 0.3) : 0;
     withAlpha(fade(t, 22.6) * (1 - 0.55 * struck), () => { g.font = `600 ${rfs}px ${MONO}`; const w = g.measureText(id).width; text(id, x, y, rfs, C.ink, 'left', '600', 9999, MONO);
       if (struck > 0) { g.strokeStyle = C.red; g.lineWidth = 4 * S; g.beginPath(); g.moveTo(x - 6 * S, y); g.lineTo(x - 6 * S + (w + 12 * S) * struck, y); g.stroke(); } }); });
-  const cfs = (portrait ? 25 : 27) * S;
-  RULES.forEach(([sel, body, col], i) => { const k = eOut(prog(t, TL.rules[i], TL.rules[i] + 0.3)); if (k <= 0) return; const y = by + 90 * S + i * cfs * 2.9;
-    withAlpha(k, () => { text(sel, bx + 26 * S + (1 - k) * 30 * S, y, cfs * 1.1, col, 'left', '700', 9999, MONO); text(body, bx + 26 * S + (1 - k) * 30 * S, y + cfs * 1.3, cfs, C.ink, 'left', '500', bw - 50 * S, MONO); }); });
+  const cfs = 36 * S;
+  RULES.forEach(([sel, body, col], i) => { const k = eOut(prog(t, TL.rules[i], TL.rules[i] + 0.3)); if (k <= 0) return; const y = by + 98 * S + i * cfs * 2.75;
+    withAlpha(k, () => { text(sel, bx + 26 * S + (1 - k) * 30 * S, y, cfs * 1.1, col, 'left', '700', 9999, MONO); text(body, bx + 26 * S + (1 - k) * 30 * S, y + cfs * 1.3, cfs, C.ink, 'left', '500', bw - 40 * S, MONO); }); });
   // merge arrows
   const mk = eInOut(prog(t, TL.merge, TL.merge + 0.5));
   if (portrait) { arrow(ax + aw / 2, ay + ah + 10 * S, rx + rw * 0.35, ry - 14 * S, mk, C.blue); arrow(bx + bw / 2, by + bh + 10 * S, rx + rw * 0.65, ry - 14 * S, mk, C.green); }
   else { arrow(bx + bw + 8 * S, by + bh * 0.5, rx - 12 * S, ry + rh * 0.5, mk, C.green); arrow(ax + aw * 0.5, ay + ah + 14 * S, rx + rw * 0.2, ry + rh + 14 * S, 0, C.blue); }
-  withAlpha(fade(t, TL.merge + 0.2), () => { box(rx, ry, rw, rh, 20 * S, C.panel, C.amber, 3 * S); text('Render tree', rx + 22 * S, ry + 34 * S, 28 * S, C.amber, 'left', '700'); });
+  withAlpha(fade(t, TL.merge + 0.2), () => { box(rx, ry, rw, rh, 20 * S, C.panel, C.amber, 3 * S); text('Render tree', rx + 22 * S, ry + 38 * S, 36 * S, C.amber, 'left', '700'); });
   const RN = [['body', C.blue, ''], ['h1', C.amber, 'amber'], ['p', C.green, '18px']];
-  const rpos = portrait ? [[0.5, 0.64], [0.33, 0.755], [0.67, 0.755]] : [[0.805, 0.38], [0.735, 0.58], [0.875, 0.58]];
+  const rpos = portrait ? [[0.5, 0.64], [0.33, 0.73], [0.67, 0.73]] : [[0.805, 0.39], [0.735, 0.6], [0.875, 0.6]];
+  const nw = 184 * S, nh = 100 * S;  // nodes with a style note hold two 36px lines
   RN.forEach(([id, col, note], i) => { const k = pop(t, TL.rnodes[i]); if (k <= 0) return; const [x, y] = [rpos[i][0] * W, rpos[i][1] * H];
-    if (i > 0) { g.strokeStyle = C.dim; g.lineWidth = 3 * S; g.beginPath(); g.moveTo(rpos[0][0] * W, rpos[0][1] * H + 30 * S); g.lineTo(x, y - 30 * S); g.stroke(); }
-    const nw = 150 * S, nh = 64 * S; g.save(); g.translate(x, y); g.scale(k, k); box(-nw / 2, -nh / 2, nw, nh, 14 * S, i === 1 ? C.amber : C.panel, col, 4 * S);
-    text(id, 0, note ? -8 * S : 0, 30 * S, i === 1 ? C.bg : C.ink, 'center', '700', nw - 12 * S, MONO); if (note) text(note, 0, 18 * S, 20 * S, i === 1 ? C.bg : C.dim, 'center', '600', nw - 12 * S, MONO); g.restore(); });
-  withAlpha(fade(t, TL.strikes[1] + 0.2), () => text('display: none → skipped', portrait ? rx + rw / 2 : rx + rw / 2, portrait ? ry + rh - 26 * S : ry + rh - 34 * S, 26 * S, C.red, 'center', '600', rw - 30 * S));
+    if (i > 0) { g.strokeStyle = C.dim; g.lineWidth = 3 * S; g.beginPath(); g.moveTo(rpos[0][0] * W, rpos[0][1] * H + 32 * S); g.lineTo(x, y - nh / 2); g.stroke(); }
+    const bh = note ? nh : 64 * S; g.save(); g.translate(x, y); g.scale(k, k); box(-nw / 2, -bh / 2, nw, bh, 14 * S, i === 1 ? C.amber : C.panel, col, 4 * S);
+    text(id, 0, note ? -21 * S : 0, 36 * S, i === 1 ? C.bg : C.ink, 'center', '700', nw - 12 * S, MONO); if (note) text(note, 0, 21 * S, 36 * S, i === 1 ? C.bg : C.dim, 'center', '600', nw - 12 * S, MONO); g.restore(); });
+  withAlpha(fade(t, TL.strikes[1] + 0.2), () => text('display: none → skipped', portrait ? rx + rw / 2 : rx + rw / 2, portrait ? ry + rh - 34 * S : ry + rh - 40 * S, 36 * S, C.red, 'center', '600', rw - 20 * S));
   caption('Only visible nodes make the render tree', t, 27.5);
 }
 
@@ -260,9 +263,9 @@ function pageGeom(t, which) {
   return { fx, fy, fw, fh, vw };
 }
 function pageLayout(G) { // compute boxes for a page of viewport width vw
-  const pad = 24 * S, top = G.fy + 60 * S; const cw = G.vw - 2 * pad; const h1h = 64 * S;
-  const pfs = 30 * S, font = `500 ${pfs}px ${FONT}`; const lines = wrap(PTEXT, cw - 24 * S, font); const ph = lines.length * pfs * 1.4 + 24 * S;
-  return { pad, top, cw, h1: [G.fx + pad, top + pad, cw, h1h], p: [G.fx + pad, top + pad + h1h + 20 * S, cw, ph], lines, pfs, bodyH: pad * 2 + h1h + 20 * S + ph };
+  const pad = 24 * S, lab = 44 * S, top = G.fy + 60 * S; const cw = G.vw - 2 * pad; const h1h = lab + 72 * S;   // lab: strip for scene 6's box label, above the content
+  const pfs = 36 * S, font = `500 ${pfs}px ${FONT}`; const lines = wrap(PTEXT, cw - 24 * S, font); const ph = lab + lines.length * pfs * 1.4 + 24 * S;
+  return { pad, lab, top, cw, h1: [G.fx + pad, top + lab + pad, cw, h1h], p: [G.fx + pad, top + lab + pad + h1h + 20 * S, cw, ph], lines, pfs, bodyH: lab + pad * 2 + h1h + 20 * S + ph };
 }
 function windowFrame(G, vw) { box(G.fx, G.fy, vw, G.fh, 16 * S, '#0b1128', C.edge, 3 * S); g.fillStyle = '#18214a'; g.fillRect(G.fx + 2 * S, G.fy + 2 * S, vw - 4 * S, 44 * S);
   [C.red, C.amber, C.green].forEach((c, i) => { g.fillStyle = c; g.beginPath(); g.arc(G.fx + 26 * S + i * 24 * S, G.fy + 24 * S, 7 * S, 0, 7); g.fill(); }); }
@@ -272,24 +275,24 @@ function scene6(t) {
   withAlpha(fade(t, TL.frame - 0.3, 0.4), () => windowFrame(G, G.vw));
   const dash = [12 * S, 8 * S];
   const drawBox = (b, col, at, label) => { const k = eOut(prog(t, at, at + 0.4)); if (k <= 0) return; g.save(); g.setLineDash(dash); g.strokeStyle = col; g.lineWidth = 3 * S; g.strokeRect(b[0], b[1], b[2] * k, b[3] * k); g.setLineDash([]);
-    g.globalAlpha *= 0.12; g.fillStyle = col; g.fillRect(b[0], b[1], b[2] * k, b[3] * k); g.restore(); withAlpha(k, () => text(label, b[0] + 10 * S, b[1] + 18 * S, 22 * S, col, 'left', '700', 9999, MONO)); };
+    g.globalAlpha *= 0.12; g.fillStyle = col; g.fillRect(b[0], b[1], b[2] * k, b[3] * k); g.restore(); withAlpha(k, () => text(label, b[0] + 12 * S, b[1] + L.lab / 2 + 1 * S, 36 * S, col, 'left', '700', 9999, MONO)); };
   drawBox([G.fx + 8 * S, L.top, G.vw - 16 * S, L.bodyH], C.blue, TL.boxes[0], 'body');
   drawBox(L.h1, C.amber, TL.boxes[1], 'h1'); drawBox(L.p, C.green, TL.boxes[2], 'p');
-  withAlpha(fade(t, TL.boxes[1] + 0.2), () => text('Hello, browser', L.h1[0] + 16 * S, L.h1[1] + L.h1[3] / 2 + 8 * S, 36 * S, 'rgba(233,237,249,0.55)', 'left', '700', L.h1[2] - 30 * S));
-  withAlpha(fade(t, TL.boxes[2] + 0.2), () => L.lines.forEach((ln, i) => text(ln, L.p[0] + 12 * S, L.p[1] + 36 * S + i * L.pfs * 1.4, L.pfs, 'rgba(233,237,249,0.55)', 'left', '500', 9999)));
+  withAlpha(fade(t, TL.boxes[1] + 0.2), () => text('Hello, browser', L.h1[0] + 16 * S, L.h1[1] + L.lab + 38 * S, 44 * S, 'rgba(233,237,249,0.55)', 'left', '700', L.h1[2] - 30 * S));
+  withAlpha(fade(t, TL.boxes[2] + 0.2), () => L.lines.forEach((ln, i) => text(ln, L.p[0] + 12 * S, L.p[1] + L.lab + 36 * S + i * L.pfs * 1.4, L.pfs, 'rgba(233,237,249,0.55)', 'left', '500', 9999)));
   const css = v => Math.round(v / S);
   const mk = eOut(prog(t, TL.measure, TL.measure + 0.4));
   if (mk > 0) withAlpha(mk, () => { const y = L.h1[1] - 12 * S; g.strokeStyle = C.amber; g.lineWidth = 2.5 * S; g.beginPath(); g.moveTo(L.h1[0], y); g.lineTo(L.h1[0] + L.h1[2], y); g.stroke();
     for (const x of [L.h1[0], L.h1[0] + L.h1[2]]) { g.beginPath(); g.moveTo(x, y - 8 * S); g.lineTo(x, y + 8 * S); g.stroke(); }
-    chip(`${css(L.h1[2])}px`, L.h1[0] + L.h1[2] / 2, y, C.amber, 1, 20, true); });
+    chip(`${css(L.h1[2])}px`, L.h1[0] + L.h1[2] / 2, y, C.amber, 1, 36, true); });
   // readouts
   const [ox, oy, ow] = portrait ? [W * 0.08, H * 0.655, W * 0.84] : [W * 0.655, H * 0.25, W * 0.29];
-  const rows = [['body', `0, 0`, `${css(G.vw)} × ${css(L.bodyH)}`, C.blue, TL.boxes[0]], ['h1', `24, 24`, `${css(L.h1[2])} × ${css(L.h1[3])}`, C.amber, TL.boxes[1]], ['p', `24, ${css(L.p[1] - L.top)}`, `${css(L.p[2])} × ${css(L.p[3])}`, C.green, TL.boxes[2]]];
-  const rh = (portrait ? 64 : 92) * S;
+  const rows = [['body', `0, 0`, `${css(G.vw)} × ${css(L.bodyH)}`, C.blue, TL.boxes[0]], ['h1', `24, ${css(L.h1[1] - L.top)}`, `${css(L.h1[2])} × ${css(L.h1[3])}`, C.amber, TL.boxes[1]], ['p', `24, ${css(L.p[1] - L.top)}`, `${css(L.p[2])} × ${css(L.p[3])}`, C.green, TL.boxes[2]]];
+  const rh = (portrait ? 72 : 108) * S;
   rows.forEach(([id, xy, wh, col, at], i) => { const k = eOut(prog(t, at + 0.1, at + 0.4)); if (k <= 0) return; const y = oy + i * (rh + 12 * S);
     withAlpha(k, () => { box(ox, y, ow, rh, 14 * S, C.panel, col, 3 * S);
-      if (portrait) { text(id, ox + 20 * S, y + rh / 2, 30 * S, col, 'left', '700', 9999, MONO); text(`x,y ${xy}`, ox + 110 * S, y + rh / 2, 26 * S, C.dim, 'left', '500', 9999, MONO); text(wh, ox + ow - 20 * S, y + rh / 2, 30 * S, C.ink, 'right', '600', 9999, MONO); }
-      else { text(id, ox + 20 * S, y + 28 * S, 28 * S, col, 'left', '700', 9999, MONO); text(`x,y ${xy}`, ox + ow - 20 * S, y + 28 * S, 22 * S, C.dim, 'right', '500', 9999, MONO); text(wh, ox + 20 * S, y + 64 * S, 30 * S, C.ink, 'left', '600', ow - 40 * S, MONO); } }); });
+      if (portrait) { text(id, ox + 20 * S, y + rh / 2, 36 * S, col, 'left', '700', 9999, MONO); text(`x,y ${xy}`, ox + 120 * S, y + rh / 2, 36 * S, C.dim, 'left', '500', 9999, MONO); text(wh, ox + ow - 20 * S, y + rh / 2, 36 * S, C.ink, 'right', '600', 9999, MONO); }
+      else { text(id, ox + 20 * S, y + 32 * S, 36 * S, col, 'left', '700', 9999, MONO); text(`x,y ${xy}`, ox + ow - 20 * S, y + 32 * S, 36 * S, C.dim, 'right', '500', 9999, MONO); text(wh, ox + 20 * S, y + 76 * S, 36 * S, C.ink, 'left', '600', ow - 40 * S, MONO); } }); });
   caption('Resize the window → layout runs again (reflow)', t, TL.resize[0]);
 }
 
@@ -300,31 +303,33 @@ function scene7(t) {
   const sp = eInOut(prog(t, TL.split, TL.split + 0.6)) * (1 - eInOut(prog(t, TL.mergeL, TL.mergeL + 0.5)));
   const layers = [
     ['background', C.blue, TL.recs[0], () => { const gr = g.createLinearGradient(G.fx, G.fy, G.fx + G.vw, G.fy + G.fh); gr.addColorStop(0, '#1b2a5c'); gr.addColorStop(1, '#2a1846'); box(G.fx, G.fy, G.vw, G.fh, 16 * S, gr, null); }],
-    ['header', C.pink, TL.recs[1], () => { box(G.fx, G.fy, G.vw, 50 * S, 16 * S, C.pink, null); text('example.com', G.fx + G.vw / 2, G.fy + 25 * S, 24 * S, C.bg, 'center', '700'); }],
-    ['text', C.amber, TL.recs[2], () => { text('Hello, browser', L.h1[0] + 16 * S, L.h1[1] + L.h1[3] / 2 + 8 * S, 44 * S, C.amber, 'left', '700', L.h1[2] - 30 * S);
-      withAlpha(fade(t, TL.recs[3], 0.3), () => L.lines.forEach((ln, i) => text(ln, L.p[0] + 12 * S, L.p[1] + 36 * S + i * L.pfs * 1.4, L.pfs, C.ink, 'left', '500', 9999))); }],
+    ['header', C.pink, TL.recs[1], () => { box(G.fx, G.fy, G.vw, 68 * S, 16 * S, C.pink, null); text('example.com', G.fx + G.vw / 2, G.fy + 34 * S, 42 * S, C.bg, 'center', '700'); }],  // 42px: still >= 28px when the layer is tilted
+    ['text', C.amber, TL.recs[2], () => { text('Hello, browser', L.h1[0] + 16 * S, L.h1[1] + L.lab + 38 * S, 48 * S, C.amber, 'left', '700', L.h1[2] - 30 * S);
+      withAlpha(fade(t, TL.recs[3], 0.3), () => L.lines.forEach((ln, i) => text(ln, L.p[0] + 12 * S, L.p[1] + L.lab + 36 * S + i * L.pfs * 1.4, L.pfs, C.ink, 'left', '500', 9999))); }],
   ];
   withAlpha(fade(t, 32.8, 0.4) * (1 - fade(t, TL.recs[0], 0.3)), () => windowFrame(G, G.vw));
   const cxp = G.fx + G.vw / 2, cyp = G.fy + G.fh / 2;
   layers.forEach(([name, col, at, draw], j) => { const k = fade(t, at, 0.35); if (k <= 0) return;
-    g.save(); const off = (j - 1) * sp; g.translate(cxp + off * (portrait ? 70 : 110) * S, cyp - off * (portrait ? 110 : 90) * S);
-    g.transform(1, -0.18 * sp, 0.5 * sp * (portrait ? 0.5 : 1), 1 - 0.25 * sp, 0, 0); g.scale(1 - 0.12 * sp, 1 - 0.12 * sp); g.translate(-cxp, -cyp);
+    g.save(); const off = (j - 1) * sp; g.translate(cxp + off * (portrait ? 70 : 110) * S, cyp - off * (portrait ? 60 : 55) * S);  // fanned mostly sideways: a big lift would put the text layer on the header
+    g.transform(1, (portrait ? 0 : -0.08) * sp, 0.5 * sp * (portrait ? 0.5 : 1), 1 - 0.18 * sp, 0, 0); g.scale(1 - 0.06 * sp, 1 - 0.06 * sp); g.translate(-cxp, -cyp);  // mild tilt (none in 9:16, where the text lines sit closer): layer text stays readable and apart
     withAlpha(k * (sp > 0 ? 1 - 0.15 * sp : 1), draw);
-    if (sp > 0.02) { withAlpha(sp, () => { g.setLineDash([10 * S, 8 * S]); g.strokeStyle = col; g.lineWidth = 3 * S; g.strokeRect(G.fx, G.fy, G.vw, G.fh); g.setLineDash([]); text(`layer: ${name}`, G.fx + G.vw - 16 * S, G.fy + G.fh - 24 * S, 26 * S, col, 'right', '700'); }); }
+    if (sp > 0.02) { withAlpha(sp, () => { g.setLineDash([10 * S, 8 * S]); g.strokeStyle = col; g.lineWidth = 3 * S; g.strokeRect(G.fx, G.fy, G.vw, G.fh); g.setLineDash([]); withAlpha(clamp(sp * 2 - 1), () => text(`layer: ${name}`, G.fx + 16 * S, G.fy + G.fh - 30 * S, 46 * S, col, 'left', '700')); }); }  // bottom-left: the tilt pushes the right edge off frame in 9:16
     g.restore(); });
   // pixel grid
   const gk = fade(t, TL.grid, 0.3) * (1 - prog(t, TL.grid + 0.6, TL.pull[0] + 0.6));
   if (gk > 0) withAlpha(gk * 0.5, () => { const cs = 18 * S; g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1; g.beginPath();
     for (let x = G.fx; x <= G.fx + G.vw; x += cs) { g.moveTo(x, G.fy); g.lineTo(x, G.fy + G.fh); } for (let y = G.fy; y <= G.fy + G.fh; y += cs) { g.moveTo(G.fx, y); g.lineTo(G.fx + G.vw, y); } g.stroke(); });
-  // paint records
-  const [ox, oy, ow] = portrait ? [W * 0.08, H * 0.655, W * 0.84] : [W * 0.655, H * 0.25, W * 0.29];
+  // paint records (portrait: started a little higher so the last line clears the board edge in 4:5)
+  const [ox, oy, ow] = portrait ? [W * 0.08, H * 0.645, W * 0.84] : [W * 0.655, H * 0.25, W * 0.29];
   const recs = [['fillRect(background)', C.blue], ['fillRect(header)', C.pink], ['drawText(h1)', C.amber], ['drawText(p)', C.ink]];
-  withAlpha(fade(t, TL.recs[0] - 0.4), () => text('paint records', ox, oy + 10 * S, 26 * S, C.dim, 'left', '700'));
-  const rl = (portrait ? 48 : 56) * S;
+  withAlpha(fade(t, TL.recs[0] - 0.4), () => text('paint records', ox, oy + 10 * S, 36 * S, C.dim, 'left', '700'));
+  const rl = 68 * S, gy = oy + 64 * S + 4 * rl;
   recs.forEach(([r, col], i) => { const k = eOut(prog(t, TL.recs[i], TL.recs[i] + 0.3)); if (k <= 0) return;
-    g.font = `600 ${24 * S}px ${MONO}`; const cw = g.measureText(r).width + 36 * S; withAlpha(k, () => chip(r, ox + cw / 2 + (1 - k) * 30 * S, oy + 60 * S + i * rl, col, 1, 24, false)); });
-  withAlpha(fade(t, TL.split + 0.2) * (1 - fade(t, TL.pull[0], 0.4)), () => text(sp > 0.5 || t < TL.mergeL ? 'Layers go to the GPU…' : 'GPU composites the layers', ox, oy + 60 * S + 4 * rl + 10 * S, 28 * S, C.violet, 'left', '700', ow));
-  withAlpha(fade(t, TL.grid) * (1 - fade(t, TL.pull[0], 0.4)), () => text('→ pixels, every 16.7 ms at 60 fps', ox, oy + 60 * S + 4 * rl + 56 * S, 26 * S, C.ink, 'left', '600', ow));
+    g.font = `600 ${36 * S}px ${MONO}`; const cw = g.measureText(r).width + 36 * S; withAlpha(k, () => chip(r, ox + cw / 2 + (1 - k) * 30 * S, oy + 64 * S + i * rl, col, 1, 36, false)); });
+  withAlpha(fade(t, TL.split + 0.2) * (1 - fade(t, TL.pull[0], 0.4)), () => text(sp > 0.5 || t < TL.mergeL ? 'Layers go to the GPU…' : 'GPU composites the layers', ox, gy, 36 * S, C.violet, 'left', '700', ow));
+  // two lines in the narrow 16:9 column: one 36px line would shrink under the size floor
+  withAlpha(fade(t, TL.grid) * (1 - fade(t, TL.pull[0], 0.4)), () => (portrait ? ['→ pixels, every 16.7 ms at 60 fps'] : ['→ pixels, every 16.7 ms', 'at 60 fps'])
+    .forEach((ln, i) => text(ln, ox, gy + 46 * S + i * 46 * S, 36 * S, C.ink, 'left', '600', ow)));
 }
 
 // ---------------- world rendering ----------------
@@ -365,7 +370,8 @@ function seek(t) {
   if (tg > 0) { const band = g.createLinearGradient(0, H * 0.72, 0, H); band.addColorStop(0, 'rgba(7,11,24,0)'); band.addColorStop(0.35, 'rgba(7,11,24,0.85)'); band.addColorStop(1, 'rgba(7,11,24,0.95)');
     withAlpha(tg, () => { g.fillStyle = band; g.fillRect(0, H * 0.72, W, H * 0.28);
       text('Code in. Pixels out.', W / 2, H * (portrait ? 0.855 : 0.84) + (1 - tg) * 30 * S, (portrait ? 84 : 76) * S, C.amber, 'center', '700');
-      text('URL → DNS → HTTP → DOM → CSSOM → Layout → Paint → Composite', W / 2, H * (portrait ? 0.91 : 0.915), (portrait ? 30 : 32) * S, C.ink, 'center', '500', W * 0.9); });
+      wrap('URL → DNS → HTTP → DOM → CSSOM → Layout → Paint → Composite', W * 0.9, `500 ${36 * S}px ${FONT}`)
+        .forEach((ln, i) => text(ln, W / 2, H * (portrait ? 0.905 : 0.915) + i * 48 * S, 36 * S, C.ink, 'center', '500', W * 0.9)); });  // wraps to two lines in 9:16
   }
 }
 

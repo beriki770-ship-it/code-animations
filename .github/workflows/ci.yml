@@ -23,5 +23,8 @@ jobs:
       - run: node harness/verify.mjs example/browser-10s/index.html --format 16x9
       - run: node harness/verify.mjs example/browser-10s/index.html --format 9x16
       - run: node harness/audio.mjs example/browser-10s/index.html --twice
+      - run: node harness/lint.mjs example/browser-10s/index.html --all-formats
+      # Generation only: --check needs written answers, which CI can't give
+      - run: node harness/review.mjs example/browser-10s/index.html --format 16x9 --out out/review && test -f out/review/REVIEW.md && test -s out/review/lint.json && ls out/review/sheets/*.png
       - run: node harness/render.mjs example/browser-10s/index.html --format 16x9 --out out/ci.mp4
       - run: bash harness/qa.sh out/ci.mp4 1
