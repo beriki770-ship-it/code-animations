@@ -48,6 +48,26 @@ function text(str, x, y, size, color, align = 'center', weight = '600', maxW = W
 }
 function rrect(x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
 
+// ---------- editable elements: review/film-fix.html moves/scales these and rewrites only the TUNE line ----------
+const FMT = { '1920x1080': '16x9', '1080x1920': '9x16', '1080x1350': '4x5', '1080x1080': '1x1' }[`${W}x${H}`] || `${W}x${H}`;
+const TUNE = /*TUNE*/{}/*END-TUNE*/;               // {format: {id: {dx, dy, s}}}, canvas px; per format because layouts differ
+const ELEMENTS = [];                                // [{id, box:[x,y,w,h]}] in canvas px, rebuilt by every seek
+function E(id, [x, y, w, h], draw) {
+  const k = (TUNE[FMT] || {})[id], dx = (k && k.dx) || 0, dy = (k && k.dy) || 0, s = (k && k.s) || 1;
+  const tuned = dx !== 0 || dy !== 0 || s !== 1;   // untuned: no transform at all, so frames stay byte-identical
+  if (tuned) {                                      // move/scale in canvas px around the box centre, on top of any camera
+    const m0 = g.getTransform(), c = m0.transformPoint(new DOMPoint(x + w / 2, y + h / 2));
+    g.save(); g.setTransform(new DOMMatrix().translate(dx + c.x, dy + c.y).scale(s).translate(-c.x, -c.y).multiply(m0));
+  }
+  const m = g.getTransform(), pts = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]].map(([px, py]) => m.transformPoint(new DOMPoint(px, py)));
+  const xs = pts.map(q => q.x), ys = pts.map(q => q.y), x0 = Math.min(...xs), y0 = Math.min(...ys);
+  ELEMENTS.push({ id, box: [x0, y0, Math.max(...xs) - x0, Math.max(...ys) - y0] });
+  draw();
+  if (tuned) g.restore();
+}
+// box of one centred text line (text() sets its own font again before drawing)
+const tbox = (str, x, y, size, weight = '700') => { g.font = `${weight} ${size}px ${FONT}`; const w = g.measureText(str).width; return [x - w / 2, y - size * 0.6, w, size * 1.2]; };
+
 // ---------- background: seeded drifting dots, function of t only ----------
 const DOTS = (() => { const r = rngFor('bg-dots'); return Array.from({ length: 90 }, () => ({ x: r(), y: r(), s: 0.5 + r() * 2, v: 0.004 + r() * 0.02, a: 0.08 + r() * 0.25 })); })();
 function background(t) {
@@ -68,10 +88,14 @@ function scene1(t) {
   g.globalAlpha *= 1; const ga = g.globalAlpha;
   g.globalAlpha = ga * titleIn;
   const ty = portrait ? H * 0.34 : H * 0.30;
+  const tsz = (portrait ? 96 : 84) * S, tf = portrait ? 1.2 : 1, b1 = tbox('How a browser', W / 2, ty - 62 * S * tf, tsz), b2 = tbox('draws a page', W / 2, ty + 40 * S * tf, tsz);
+  E('title', [Math.min(b1[0], b2[0]), b1[1], Math.max(b1[2], b2[2]), b2[1] + b2[3] - b1[1]], () => {
   text('How a browser', W / 2, ty - 62 * S * (portrait ? 1.2 : 1), (portrait ? 96 : 84) * S, C.ink, 'center', '700');
   text('draws a page', W / 2, ty + 40 * S * (portrait ? 1.2 : 1), (portrait ? 96 : 84) * S, C.amber, 'center', '700');
+  });
   g.globalAlpha = ga * eOutCubic(prog(lt, 0.2, 0.7));
   const bw = Math.min(W - 2 * M, 1100 * S), bh = 110 * S, bx = (W - bw) / 2, by = portrait ? H * 0.52 : H * 0.55;
+  E('addressBar', [bx, by, bw, bh + 100 * S], () => {   // bar + loading line under it
   const flash = lt > TL.enter ? Math.exp(-(lt - TL.enter) * 5) : 0;
   const zoom = 1 + 0.04 * eOutCubic(prog(lt, 0, 3.4));                 // slow push-in: no dead frames
   g.save(); g.translate(W / 2, by + bh / 2); g.scale(zoom + flash * 0.05, zoom + flash * 0.05); g.translate(-W / 2, -(by + bh / 2));
@@ -87,6 +111,7 @@ function scene1(t) {
   // loading bar after Enter
   const lp = eInOut(prog(lt, TL.enter, TL.enter + 1.0));
   if (lp > 0) { g.fillStyle = C.amber; g.fillRect(bx, by + bh + 26 * S, bw * lp, 8 * S); text(lp < 1 ? 'Loading…' : 'HTML received', W / 2, by + bh + 80 * S, 40 * S, C.dim, 'center', '500'); }
+  });
   g.globalAlpha = ga;
 }
 
@@ -105,8 +130,11 @@ function treePos() {
 }
 function scene2(t) {
   const lt = t;
-  text('1. Parse HTML → DOM tree', W / 2, portrait ? H * 0.15 : H * 0.12, (portrait ? 70 : 64) * S, C.ink, 'center', '700');
+  E('heading2', tbox('1. Parse HTML → DOM tree', W / 2, portrait ? H * 0.15 : H * 0.12, (portrait ? 70 : 64) * S), () =>
+  text('1. Parse HTML → DOM tree', W / 2, portrait ? H * 0.15 : H * 0.12, (portrait ? 70 : 64) * S, C.ink, 'center', '700'));
   const P = treePos(); const nw = (portrait ? 240 : 220) * S, nh = 92 * S;
+  const PX = Object.values(P).map(q => q[0]), PY = Object.values(P).map(q => q[1]);
+  E('tree', [Math.min(...PX) - nw / 2, Math.min(...PY) - nh / 2, Math.max(...PX) - Math.min(...PX) + nw, Math.max(...PY) - Math.min(...PY) + nh], () => {
   TREE.forEach(([id, , parent], i) => {         // edges first
     if (!parent) return; const e = eInOut(prog(lt, TL.nodes[i] - 0.15, TL.nodes[i] + 0.2)); if (e <= 0) return;
     const [x0, y0] = P[parent], [x1, y1] = P[id];
@@ -121,17 +149,21 @@ function scene2(t) {
     text(label, 0, 0, 46 * S, C.ink, 'center', '600', nw - 20 * S);
     g.restore();
   });
+  });
 }
 
 // ---------- scene 3: pipeline + pixels ----------
 const STAGES = [['Parse', C.blue], ['Style', C.green], ['Layout', C.amber], ['Paint', C.pink], ['Composite', '#b28cff']];
 function scene3(t) {
   const lt = t;
-  text('2. The render pipeline', W / 2, portrait ? H * 0.12 : H * 0.12, (portrait ? 70 : 64) * S, C.ink, 'center', '700');
+  E('heading3', tbox('2. The render pipeline', W / 2, portrait ? H * 0.12 : H * 0.12, (portrait ? 70 : 64) * S), () =>
+  text('2. The render pipeline', W / 2, portrait ? H * 0.12 : H * 0.12, (portrait ? 70 : 64) * S, C.ink, 'center', '700'));
   const n = STAGES.length; let pos;
   if (portrait) { const bw = W - 2 * M - 220 * S, bh = 150 * S, gap = 48 * S, top = H * 0.2; pos = STAGES.map((_, i) => [W / 2, top + i * (bh + gap) + bh / 2, bw, bh]); }
   else { const gap = 44 * S, bw = (W - 2 * M - 60 * S - gap * (n - 1)) / n, bh = 150 * S, y = H * 0.36; pos = STAGES.map((_, i) => [M + 30 * S + bw / 2 + i * (bw + gap), y, bw, bh]); }
   const active = TL.boxes.filter(b => b <= lt).length - 1;
+  const PL = Math.min(...pos.map(q => q[0] - q[2] / 2)), PT = Math.min(...pos.map(q => q[1] - q[3] / 2));
+  E('pipeline', [PL, PT, Math.max(...pos.map(q => q[0] + q[2] / 2)) - PL, Math.max(...pos.map(q => q[1] + q[3] / 2)) - PT], () => {
   STAGES.forEach(([name, col], i) => {
     const k = pop(lt, TL.boxes[i]); if (k <= 0) return;
     const [x, y, bw, bh] = pos[i]; const hot = i === active && lt < TL.grid[0] + 0.2;
@@ -140,6 +172,7 @@ function scene3(t) {
     text(name, 0, 0, (portrait ? 58 : 44) * S, hot ? C.bg : C.ink, 'center', '700', bw - 24 * S);
     g.restore();
     if (i > 0 && !portrait) { const [px, , pbw] = pos[i - 1]; g.globalAlpha *= k; text('›', (px + pbw / 2 + x - bw / 2) / 2, y, 44 * S, C.dim); g.globalAlpha = 1; }
+  });
   });
   // pixel grid fill
   const gp = prog(lt, TL.grid[0], TL.grid[1]);
@@ -150,20 +183,23 @@ function scene3(t) {
   const on = Math.floor(gp * cells * cells);
   const gh = portrait ? Math.min(gs * 0.55, H - gy - 190 * S) : Math.min(gs * 0.5, H - gy - 170 * S);
   const rows = Math.max(1, Math.floor(gh / cs));
+  E('pixels', [gx, gy, gs, rows * cs], () => {
   if (gp > 0) for (let k = 0; k < on; k++) {
     const idx = order[k], cx = idx % cells, cy = Math.floor(idx / cells); if (cy >= rows) continue;
     const hue = (cx * 18 + cy * 9 + lt * 40) % 360;
     g.fillStyle = `hsl(${hue},70%,${55 + 10 * Math.sin(lt * 3 + idx)}%)`; g.fillRect(gx + cx * cs + 1, gy + cy * cs + 1, cs - 2, cs - 2);
   }
+  });
   // tagline (holds with live motion; no fade to black)
   const tg = eOutCubic(prog(lt, TL.tagline, TL.tagline + 0.5));
-  if (tg > 0) { const ga = g.globalAlpha; g.globalAlpha = ga * tg; text('Code in, pixels out.', W / 2, H - M - 50 * S + (1 - tg) * 30 * S, (portrait ? 72 : 60) * S, C.amber, 'center', '700'); g.globalAlpha = ga; }
+  if (tg > 0) { const ga = g.globalAlpha; g.globalAlpha = ga * tg; E('tagline', tbox('Code in, pixels out.', W / 2, H - M - 50 * S, (portrait ? 72 : 60) * S), () => text('Code in, pixels out.', W / 2, H - M - 50 * S + (1 - tg) * 30 * S, (portrait ? 72 : 60) * S, C.amber, 'center', '700')); g.globalAlpha = ga; }
 }
 
 // ---------- compositor: scenes + transitions, pure in t ----------
 const SCENES = [[TL.s1, scene1], [TL.s2, scene2], [TL.s3, scene3]];
 function seek(t) {
   t = clamp(t, 0, DURATION - 1e-6);
+  ELEMENTS.length = 0;
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1;
   background(t);
   SCENES.forEach(([[a, b], fn], i) => {       // push transition: outgoing slides left as incoming slides in (no empty frame)
@@ -233,6 +269,9 @@ window.__anim = {
   duration: DURATION, fps: FPS, width: W, height: H, canvas: cv, ready: false, seek, renderAudio,
   marks: [TL.enter, ...TL.nodes, ...TL.boxes, TL.grid[0]],
   shots: SCENES.map(([[a, b]], i) => ({ id: 's' + (i + 1), start: a, end: b })),
+  elements: ELEMENTS, format: FMT,
+  get tune() { return TUNE; },
+  set tune(v) { for (const k of Object.keys(TUNE)) delete TUNE[k]; Object.assign(TUNE, JSON.parse(JSON.stringify(v || {}))); },
 };
 // fonts must be loaded before ready, or first frames render in a fallback font
 document.fonts.load(`700 40px ${FONT}`).then(() => document.fonts.load(`500 40px ${FONT}`)).then(() => { seek(0); window.__anim.ready = true; });

@@ -31,6 +31,17 @@ Invariants:
 - Wait for fonts before `ready=true` (`document.fonts.load('700 40px "DejaVu Sans"')`). Otherwise the first frames render in a fallback font. Check installed fonts with `fc-list : family` (Linux/macOS) or `C:\Windows\Fonts` (Windows; Segoe UI, Bahnschrift, Consolas and Georgia are always there, DejaVu is not). If the design needs a specific font, embed it as a base64 @font-face and load it the same way.
 - No network calls in the work. Embed any assets as data URIs.
 
+### Editable elements (for film-fix)
+
+`review/film-fix.html` lets a reviewer move and scale elements directly and writes the result back into `index.html`. Films that want this (the example does; copy it from there) add:
+
+- `const TUNE = /*TUNE*/{}/*END-TUNE*/;` on one line, keyed by format then element id: `{"16x9":{"title":{"dx":0,"dy":0,"s":1}}}`. It is keyed per format because each aspect has its own layout. dx/dy are canvas pixels. The tool rewrites only the text between the two markers.
+- `E(id, [x,y,w,h], draw)` around each main element. It looks up `TUNE[fmt][id]`, then saves, translates by dx/dy, scales by s around the box centre, calls `draw()` and restores. It also pushes `{id, box}` into `__anim.elements`, where box is the transformed box in canvas pixels (from `ctx.getTransform()`, so camera moves are respected). `seek(t)` clears that list at the start of every frame.
+- `__anim.elements`, `__anim.format` (`16x9`, `9x16`, `4x5`, `1x1`) and `__anim.tune` (getter/setter for the live TUNE object, used for the tool's live preview).
+- Rules: ids are unique across the film; no randomness; with TUNE empty, E applies no transform at all, so frames stay byte-identical. Prove it with a frame hash before and after adding E, then run `verify.mjs`.
+
+Films without E still work in film-fix: its "Nudge" mode boxes a region and turns a drag or scale into a numeric fix for the AI.
+
 ## Project setup
 
 Needs Node 18+, ffmpeg (libx264, aac, blackdetect, freezedetect, ebur128) and a local Chrome/Chromium. The harness finds Chrome in the usual install locations on Windows, macOS and Linux; set the `CHROME` env var to override. `qa.sh` needs bash (Git Bash on Windows) and picks a system font for the timecode; set `QA_FONT` to override. Nothing is installed system-wide; puppeteer-core is the only npm dependency.

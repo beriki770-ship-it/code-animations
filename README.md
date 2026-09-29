@@ -49,6 +49,7 @@ A work follows one contract: `window.__anim = { duration, fps, width, height, ca
 - `harness/`: `render.mjs`, `verify.mjs`, `shoot.mjs`, `audio.mjs`, `qa.sh`. The only dependency is `puppeteer-core`.
 - `example/browser-10s/`: a small working piece with three scenes and push transitions. Start new works from this one.
 - `example/browsers-40s/`: a 40 second explainer with a world camera and a score on a beat grid.
+- `review/film-fix.html`: open any finished work in the browser. Scrolling scrubs the picture and the sound. Click the frame to write a note, then export a fix pack (`FIXES.md`, JSON and marked frames) that any coding AI can apply. Works that use `E()` elements can also be moved and scaled directly.
 
 Known limitation: scene 3 of `browser-10s` is laid out for 16:9 and 9:16 only. At 4:5 the pixel grid and the tagline overlap.
 
