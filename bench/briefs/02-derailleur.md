@@ -28,8 +28,9 @@
 6. A parallelogram moves the cage sideways, parallel to the axle; the pulleys stay upright.
 7. Cable pull moves the chain inward to a larger sprocket (easier gear); release lets the spring move it outward to a smaller one.
 8. On a larger sprocket the cage swings forward to feed more chain; on a smaller one it swings back.
-9. The shift happens while the pedals turn forward, over part of a turn, not as an instant jump.
+9. The shift happens while the pedals turn forward, over part of a turn, not as an instant jump. The turning crank is on screen during the shift; a caption alone does not count.
 10. Larger sprocket is labelled or shown as the easier gear, smaller as the harder gear.
+11. Relative sizes are true in every view: the smallest rear sprocket is clearly smaller than the chainring (about a quarter of its diameter on a road bike), the wheel is far larger than either, and a sprocket has the same size in the side and rear views.
 
 ## What the film must show
 
