@@ -2,3 +2,5 @@ node_modules/
 out/
 *.mp4
 *.wav
+score.json
+score-lint.json

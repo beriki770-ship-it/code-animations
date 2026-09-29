@@ -21,8 +21,10 @@ const REST_PX = 2;            // a label is "at rest" if it moved/resized less t
 const REST_FRAC = 0.04;       //   between neighbouring samples; pops and camera flights are exempt from size/margin
 const MAP_SCALE = 0.5;        // text shrunk by a zoom-out (transform scale < 0.5) is part of an overview map, not a label:
                               //   it is left out of the text checks and listed as a WARN so nothing passes silently
-const STATIC_DIFF = 0.05;     // mean abs luma change (0..255) per sample: faint background drift alone measures
-                              //   ~0.03-0.05, one typed character ~0.1, so drift alone counts as still
+const STATIC_DIFF = 0.25;     // mean abs luma change (0..255) against the FIRST frame of a still run, like ffmpeg
+                              //   freezedetect n=0.001 (~0.25/255) in qa.sh. Root cause of a miss: comparing each sample
+                              //   to its neighbour at 0.05 let slow drift (thin spokes turning, a grid creeping) measure
+                              //   0.03-0.06 per 0.1 s, so a 4 s freeze broke into sub-second runs; the anchor adds it up
 const STATIC_WARN = 2.0;      // seconds: ffmpeg freezedetect in qa.sh uses the same 2 s
 const STATIC_FAIL = 3.0;      // seconds: a 3 s freeze reads as a stalled player
 const EMPTY_STD = 4.0;        // luma stddev (0..255) of the downscaled frame: below this the frame is one flat colour
@@ -85,7 +87,7 @@ function instrument() {
 
 // One sample: seek, collect the text draws on the film's canvas, and luma stats of a downscaled copy.
 async function sampleAt(page, t) {
-  return page.evaluate((t, DW) => {
+  return page.evaluate((t, DW, SD) => {
     const L = window.__lint, cv = __anim.canvas;
     L.draws.length = 0;
     __anim.seek(t);
@@ -99,10 +101,10 @@ async function sampleAt(page, t) {
     let sum = 0; for (let i = 0; i < n; i++) { lum[i] = 0.299 * px[4 * i] + 0.587 * px[4 * i + 1] + 0.114 * px[4 * i + 2]; sum += lum[i]; }
     const mean = sum / n; let v = 0, diff = null;
     for (let i = 0; i < n; i++) v += (lum[i] - mean) ** 2;
-    if (L.prev) { diff = 0; for (let i = 0; i < n; i++) diff += Math.abs(lum[i] - L.prev[i]); diff /= n; }
-    L.prev = lum;
+    if (L.anchor) { diff = 0; for (let i = 0; i < n; i++) diff += Math.abs(lum[i] - L.anchor[i]); diff /= n; }
+    if (diff === null || diff >= SD) L.anchor = lum;     // the anchor only moves once the picture really changed
     return { texts, std: Math.sqrt(v / n), diff };
-  }, t, DIFF_W);
+  }, t, DIFF_W, STATIC_DIFF);
 }
 
 // ====================================================================================================
@@ -205,7 +207,7 @@ function checkStatic(samples, shots) {
     const st = d > STATIC_FAIL ? 'FAIL' : d > STATIC_WARN ? 'WARN' : null; if (!st) continue;
     status = worst(status, st); items.push(`${st} static ${fmtT(a)}-${fmtT(b)} (${d.toFixed(1)}s, ${shotAt(shots, a)})`);
   }
-  return { id: 'static-stretch', status, items, summary: `longest still stretch ${longest.toFixed(1)}s (mean luma change < ${STATIC_DIFF}/255)` };
+  return { id: 'static-stretch', status, items, summary: `longest still stretch ${longest.toFixed(1)}s (mean luma change vs the run's first frame < ${STATIC_DIFF}/255)` };
 }
 
 function checkEmpty(samples, shots) {

@@ -73,9 +73,12 @@ const reviews = found.map(p => {
   const fmt = (md.match(/^# Review: .*\((\w+)\)/m) || [])[1];
   return { p, fmt, film: film && path.resolve(path.dirname(p), film) };
 }).filter(r => r.film === html);
+if (a.brief && !fs.existsSync(a.brief)) { console.log(`brief not found: ${a.brief}`); process.exit(0); }
+// a brief with an accuracy checklist makes it mandatory in REVIEW.md: every item verdicted correct, with a citation
+const checklist = a.brief && /^## Accuracy checklist/im.test(fs.readFileSync(a.brief, 'utf8')) ? ['--checklist', path.resolve(a.brief)] : [];
 for (const [k, f] of [['review16', '16x9'], ['review9', '9x16']]) {
   const mine = reviews.filter(r => r.fmt === f);
-  const res = mine.map(r => ({ r, c: run('review.mjs', ['--check', r.p]) }));
+  const res = mine.map(r => ({ r, c: run('review.mjs', ['--check', r.p, ...checklist]) }));
   const ok = res.find(x => x.c.ok);
   const ev = !mine.length ? `no REVIEW.md for ${f} found` : `${rel((ok || res[0]).r.p)}: ${lastLine((ok || res[0]).c.out)}`;
   add(`review --check ${f}`, !!ok, ok ? W[k] : 0, W[k], ev);

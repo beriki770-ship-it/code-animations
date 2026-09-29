@@ -35,14 +35,18 @@ node harness/render.mjs  <work>/index.html --format 16x9 --out out/<name>-16x9.m
 bash harness/qa.sh out/<name>-16x9.mp4 4                            # contact sheets at 4 samples/sec: look at them
 ```
 
-`review.mjs` writes one contact sheet per shot and a `REVIEW.md` with fixed questions per shot. `--check` exits 1 while any answer is empty or `TODO`, any score is under 4, lint has a FAIL, a shot section was removed, or the film changed after the sheets were made. After any fix, run `review.mjs` again and answer again.
+`review.mjs` writes one contact sheet per shot and a `REVIEW.md` with fixed questions per shot. `--check` exits 1 while any answer is empty or `TODO`, any score is under 4, lint has a FAIL, a shot section was removed, the film changed after the sheets were made, a shot's answers cite no tile of its sheet as `@4.30s`, or two shots share an identical answer. After any fix, run `review.mjs` again and answer again.
+
+If the brief has an `## Accuracy checklist`, add `--checklist <brief.md>` to both `review.mjs` commands: every item needs a verdict (`correct`, `wrong` or `missing`) with a tile citation, and `--check` fails until all are `correct`.
 
 ## Rules you may not break
 
 - **Never claim done with a failing gate.** Report the failure instead.
 - **Never weaken a gate.** Don't edit thresholds in `harness/*.mjs`, don't skip formats, don't delete questions from `REVIEW.md`, don't fill answers you didn't check. Fix the film, not the gate.
 - **Look at the sheets before you answer.** Every answer describes what is on the sheet, with timecodes. An answer written without opening the image is a false claim.
-- **Accuracy against a reference.** Every depicted real thing (animal anatomy, a logo, a product UI, a diagram of a real system) must be checked against a reference image. In `REVIEW.md` question 2, name the reference (file or URL) and what you compared: proportions, part count, colours, order of steps. No reference found: say so and score the shot below 4 until one is checked.
+- **Open each sheet and write each answer yourself; never generate REVIEW.md answers with a script — the check detects it.**
+- **Accuracy against a reference.** Every depicted real thing (animal anatomy, a logo, a product UI, a diagram of a real system) must be checked against a reference image. In `REVIEW.md` question 2, name the reference (file or URL) and what you compared: direction of motion (rotation sense, flow and travel direction), relative sizes and proportions of parts, part count, colours, order of steps. No reference found: say so and score the shot below 4 until one is checked.
+  - Motion direction and relative size are the most-missed errors: a chain running backward and a rear sprocket drawn nearly chainring-sized both passed every gate once.
 - `seek(t)` stays pure: no `Math.random()`, no `Date`, no state carried between frames (details in SKILL.md).
 - No network calls in the film. Embed assets as data URIs.
 
