@@ -244,10 +244,11 @@ const status = msg => { $('status').textContent = msg; };
 const nearNote = n => Math.abs(frameOf(n.t) - frameOf(t)) <= 2;
 
 /* ============ LOAD FILM ============ */
-async function openFile(file, dir) {
+async function openFile(file, dir, page) {
   if (!/\.html?$/i.test(file.name)) return status('That is not an .html file. Pick the film\'s index.html.');
   film.name = file.name; film.size = file.size; film.dir = dir || null;
-  film.label = dir ? `${dir.name}/${file.name}` : file.name;
+  film.page = page || '';   // server mode only: the page's path on the review server (see SERVER MODE at the end)
+  film.label = dir ? `${dir.name}/${file.name}` : page || file.name;
   film.bytes = await file.arrayBuffer();
   film.tuneOrig = undefined; film.backup = '';   // per opened file: what TUNE was on disk, and the one backup we made
   await loadFilm();
@@ -270,7 +271,8 @@ async function loadFilm() {
   doc.open();
   w.addEventListener('error', e => { firstError = firstError || e.message; });
   const f = FORMATS[film.format];
-  w.history.replaceState(null, '', location.pathname + (f ? `?w=${f[0]}&h=${f[1]}` : ''));
+  // server mode: the page's own path, so its relative scripts (../kit/kit.js, world_*.js) load from its folder
+  w.history.replaceState(null, '', (film.page || location.pathname) + (f ? `?w=${f[0]}&h=${f[1]}` : ''));
   doc.write(new TextDecoder().decode(film.bytes));
   doc.close();
 
@@ -716,7 +718,13 @@ async function saveTune() {
   const bytes = new TextEncoder().encode(html.replace(re, () => `/*TUNE*/${JSON.stringify(tune)}/*END-TUNE*/`));
   try {
     const dir = film.dir;
-    if (dir) {
+    if (film.page) {   // server mode: the review server rewrites the TUNE line of the page on disk (and backs it up on the first save)
+      const r = await fetch('/api/tune', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ page: film.page, tune, backup: !film.backup }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || `server answered ${r.status}`);
+      if (j.backup) film.backup = j.backup;
+      status(`Saved ${film.page} on the server (only the TUNE line changed; original kept as ${film.backup}). Render again to get it in the video.`);
+    } else if (dir) {
       if ((await dir.queryPermission({ mode: 'readwrite' })) !== 'granted' && (await dir.requestPermission({ mode: 'readwrite' })) !== 'granted') {
         throw new Error('no write permission for the film folder');
       }
@@ -1057,6 +1065,17 @@ addEventListener('scroll', onScroll, { passive: true });
 addEventListener('resize', () => { if (A) { layoutTrack(); setT(t); } });
 new ResizeObserver(fitView).observe(screen);
 requestAnimationFrame(tick);
+
+/* ============ SERVER MODE: the review link ============ */
+// Opened from the ZTN review server as film-fix.html?page=/build/epNN/works/<unit>/index.html: load that page over
+// http(s) and save through POST /api/tune. Without ?page= (or from file://) nothing here runs and the tool is unchanged.
+const PAGE = /^https?:$/.test(location.protocol) && new URLSearchParams(location.search).get('page');
+if (PAGE) {
+  fetch(PAGE)
+    .then(r => { if (!r.ok) throw new Error(`server answered ${r.status}`); return r.arrayBuffer(); })
+    .then(b => openFile(new File([b], 'index.html'), null, PAGE))
+    .catch(e => status(`Could not load ${PAGE}: ${e.message}`));
+}
 </script>
 </body>
 </html>
